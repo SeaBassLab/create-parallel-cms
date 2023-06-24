@@ -11,9 +11,16 @@ export const password = z
   .max(100)
   .transform((str) => str.trim())
 
+export const membershipRole = z.enum(["OWNER", "ADMIN", "USER"])
+
+export const globalRole = z.enum(["SUPERADMIN", "CUSTOMER"])
+
 export const Signup = z.object({
   email,
   password,
+  membershipRole,
+  globalRole,
+  organizationName: z.string(),
 })
 
 export const Login = z.object({

@@ -2,31 +2,53 @@
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
 datasource db {
-  provider = "sqlite"
+  provider = "mongodb"
   url      = env("DATABASE_URL")
 }
 
 generator client {
-  provider = "prisma-client-js"
+  provider = "prisma-client-ts"
 }
 
 // --------------------------------------
+model Organization {
+  id   String @id @default(auto()) @map("_id") @db.ObjectId
+  name String
+  memberships Membership[]
+}
+
+model Membership {
+  id   String         @id @default(auto()) @map("_id") @db.ObjectId
+  role MembershipRole
+
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  organizationId String       @db.ObjectId
+
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String? @db.ObjectId
+
+  // When the user joins, we will clear out the name and email and set the user.
+  invitedName  String?
+  invitedEmail String?
+
+  @@unique([organizationId, invitedEmail])
+}
 
 model User {
-  id             Int      @id @default(autoincrement())
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id             String     @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
   name           String?
-  email          String   @unique
+  email          String     @unique
   hashedPassword String?
-  role           String   @default("USER")
-
-  tokens   Token[]
-  sessions Session[]
+  role           GlobalRole
+  tokens         Token[]
+  sessions       Session[]
+  memberships    Membership[]
 }
 
 model Session {
-  id                 Int       @id @default(autoincrement())
+  id                 String    @id @default(auto()) @map("_id") @db.ObjectId
   createdAt          DateTime  @default(now())
   updatedAt          DateTime  @updatedAt
   expiresAt          DateTime?
@@ -36,30 +58,40 @@ model Session {
   publicData         String?
   privateData        String?
 
-  user   User? @relation(fields: [userId], references: [id])
-  userId Int?
+  user   User?   @relation(fields: [userId], references: [id])
+  userId String? @db.ObjectId
 }
 
 model Token {
-  id          Int      @id @default(autoincrement())
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id          String    @id @default(auto()) @map("_id") @db.ObjectId
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   hashedToken String
-  type        String
-  // See note below about TokenType enum
-  // type        TokenType
+  type        TokenType
   expiresAt   DateTime
   sentTo      String
 
-  user   User @relation(fields: [userId], references: [id])
-  userId Int
+  user   User   @relation(fields: [userId], references: [id])
+  userId String @db.ObjectId
 
   @@unique([hashedToken, type])
+}
+
+enum MembershipRole {
+  OWNER
+  ADMIN
+  USER
+}
+
+// The owners of the SaaS (you) can have a SUPERADMIN role to access all data
+enum GlobalRole {
+  SUPERADMIN
+  CUSTOMER
 }
 
 // NOTE: It's highly recommended to use an enum for the token type
 //       but enums only work in Postgres.
 //       See: https://blitzjs.com/docs/database-overview#switch-to-postgre-sql
-// enum TokenType {
-//   RESET_PASSWORD
-// }
+enum TokenType {
+  RESET_PASSWORD
+}
