@@ -1,6 +1,6 @@
 {
   "name": "create-parallel-cms",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "bin": "./bin/cli.js",
   "scripts": {
     "dev": "blitz dev",
