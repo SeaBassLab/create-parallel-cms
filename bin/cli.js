@@ -14,7 +14,7 @@ const runCommand = (command) => {
 
 const repoName = process.argv[2]
 
-const gitCheckoutCommand = `git clone --depth 1 https://github.com/seabasslab/create-parallel-cms ${repoName}`
+const gitCheckoutCommand = `git clone --depth 1 https://github.com/SeaBassLab/create-parallel-cms ${repoName}`
 
 const installDepsCommand = `cd ${repoName} && npm install`
 
